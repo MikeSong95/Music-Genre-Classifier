@@ -1,7 +1,7 @@
 from pydub import AudioSegment
 import os.path
 import os
-    
+
 import subprocess
 from PIL import Image
 
@@ -21,7 +21,7 @@ spectrograms_dir = data_dir + "{}" + "/spectrograms/"
 def audio_slice(in_path, out_path, segment_time):
     currentPath = os.path.dirname(os.path.realpath(__file__)) 
     audio_basename, ext = os.path.basename(in_path).split(".", 1)   # Extract the mp3 name
-    command = "ffmpeg -i {} -f segment -segment_time 30 -c copy {}_%03d.wav".format(in_path, out_path + audio_basename)
+    command = "ffmpeg -i {} -f segment -segment_time 10 -c copy {}_%03d.wav".format(in_path, out_path + audio_basename)
     p = subprocess.Popen(command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True, cwd=currentPath)
     output, errors = p.communicate()
     if errors:
@@ -35,7 +35,7 @@ def audio_convert(audio_file, base_fmt, to_fmt, channels):
     wav_file_name, ext = os.path.basename(audio_file).split(".", 1)
     wav_file_path = wav_file_dir + wav_file_name + ".wav"
 
-    print("> Saving .wav file at: " + wav_file_path)
+    # print("> Saving .wav file at: " + wav_file_path)
     sound.export(wav_file_path, format=to_fmt)
 
 def audio_to_spectrogram(audio_file, out_name):
@@ -49,8 +49,10 @@ def audio_to_spectrogram(audio_file, out_name):
     # Crop whitespace out of images
     spect_img = Image.open(out_name + audio_basename + ".png")
     spect_cropped = spect_img.crop((80,58,496,370))
-    spect_cropped.save(out_name + audio_basename + ".png", "png")
+    spect_resized = spect_cropped.resize((224, 224), Image.NEAREST)  
+    spect_resized.save(out_name + audio_basename + ".png", "png")
 
+"""
 for genre in genres:
     for file in os.listdir(data_dir + genre + "/raw_audio/"):
         file_ = os.fsdecode(file)
@@ -65,6 +67,7 @@ for genre in genres:
 
             # Subdirectiory in audio_slices for each audio file
             os.mkdir(audio_slices_path)
+            
             print("###############################")
             print("#       INIT DIRECTORIES      #") 
             print("###############################")
@@ -78,10 +81,12 @@ for genre in genres:
             print("###############################")
             print("")
             print("> Converting " + file_ + " to mono .wav file")
+            
             audio_convert(mp3_raw_audio_path, "mp3", "wav", 1)
             wav_raw_audio_path = raw_audio_dir.format(genre, basename+".wav")
-            print("> Slicing wav file " + basename + ".wav into 30s segments")
+            # print("> Slicing wav file " + basename + ".wav into 30s segments")
             audio_slice(wav_raw_audio_path, audio_slices_path, 30)
+            
             print("")
             print("###############################")
             print("#    GENERATE SPECTROGRAMS    #") 
@@ -94,6 +99,6 @@ for genre in genres:
 
                     audio_slice_path = audio_slices_path + filename
 
-                    print("> Creating spectrogram of " + file_)
                     audio_to_spectrogram(audio_slice_path, spectrograms_path)
-            print("\n")
+            # print("\n")
+"""
